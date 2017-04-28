@@ -10,8 +10,12 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
+
 @Entity
 @Table(name = "company")
+@Audited
 public class Company {
 
 	@Id
@@ -22,6 +26,7 @@ public class Company {
 	@Column(name = "name")
 	private String name;
 
+	@NotAudited
 	@OneToMany(mappedBy = "pk.company", cascade = CascadeType.ALL)
 	private List<Share> shares;
 
@@ -41,12 +46,24 @@ public class Company {
 		this.noOfShares = noOfShares;
 	}
 
+	public int getValue() {
+		return this.value;
+	}
+	
 	public void setValue(int value) {
 		this.value = value;
 	}
 
 	public void setNoOfShares(int noOfShares) {
 		this.noOfShares = noOfShares;
+	}
+	
+	
+
+	@Override
+	public String toString() {
+		return "Company [id=" + id + ", name=" + name + ", shares=" + shares + ", value=" + value + ", noOfShares="
+				+ noOfShares + "]";
 	}
 
 	@Override
