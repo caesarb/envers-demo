@@ -1,49 +1,54 @@
 package model;
 
-import java.math.BigDecimal;
-
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import entities.Company;
+import entities.Shareholder;
+
 public class EnversTest extends AbstractTest {
 
-    @DataProvider(name = "pus")
-    public static Object[][] primeNumbers() {
-        return new Object[][] { //
-                // { "pu-test1", ShareEntity.class } , //
-                { "pu-test2", ShareAudited.class } //
-        };
-    }
+	private Stockmarket stockmarket;
 
-    @Test(dataProvider = "pus")
-    public void test3(String pu, Class<Share> c) throws InstantiationException, IllegalAccessException {
-        init(pu);
-        
-        // test setup
-        Shareholder alice = new Shareholder("alice");
-        Shareholder bob = new Shareholder("bob");
-        Share adidas = c.newInstance();
-        adidas.setName("adidas");
-        Share basf = c.newInstance();
-        basf.setName("BASF");
-        Share volkswagen = c.newInstance();
-        volkswagen.setName("VW AG");
-        
+	public void openStockmarket() {
+		stockmarket = new Stockmarket(entityManager);
+	}
 
-        adidas.setValue(BigDecimal.valueOf(180));
-        basf.setValue(BigDecimal.valueOf(90));
-        volkswagen.setValue(BigDecimal.valueOf(136));
-        
-        alice.addShare(adidas);
-        alice.addShare(basf);
-        bob.addShare(volkswagen);
-        
-        save(alice);
-        save(bob);
+	@DataProvider(name = "pus")
+	public static Object[][] persistenceUnits() {
+		return new Object[][] { //
+				{ "pu-test1" } };
+	}
 
-        adidas = entityManager.createQuery("select s from "+c.getSimpleName()+" s where s.name='adidas'", c).getSingleResult();
-        adidas.setValue(BigDecimal.valueOf(183));
-        save(adidas);
-    }
+	@Test(dataProvider = "pus")
+	public void test(String pu) throws InstantiationException, IllegalAccessException {
+		init(pu);
+		
+		// test setup
+		entityManager.getTransaction().begin();
+		Shareholder alice = new Shareholder("alice", 400);
+		Shareholder bob = new Shareholder("bob", 300);
+
+		Company adidas = new Company("adidas", 1000, 10);
+		Company vw = new Company("VW AG", 1000, 10);
+
+		entityManager.persist(alice);
+		entityManager.persist(bob);
+		entityManager.persist(adidas);
+		entityManager.persist(vw);
+		entityManager.getTransaction().commit();
+		// test setup ende
+
+		openStockmarket();
+		stockmarket.buyShare(alice, adidas);
+		stockmarket.buyShare(alice, adidas);
+		stockmarket.buyShare(bob, adidas);
+		stockmarket.buyShare(bob, vw);
+		stockmarket.buyShare(bob, vw);
+		
+		entityManager.getTransaction().begin();
+		adidas.setValue(2000);
+		entityManager.getTransaction().commit();
+	}
 
 }
